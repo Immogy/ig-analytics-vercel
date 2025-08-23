@@ -1,3 +1,4 @@
+export const config = { runtime: 'nodejs18.x' };
 
 const CACHE_TTL_MS = Number(process.env.CACHE_TTL_MS || 5 * 60 * 1000);
 const cache = new Map(); // { key: { exp, data } }
@@ -7,6 +8,15 @@ function getCache(k){ const v = cache.get(k); return v && v.exp > Date.now() ? v
 
 export default async function handler(req, res) {
   try {
+    // CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
+
     const usernameRaw = String(req.query.username || '').trim();
     const username = usernameRaw.replace(/^@/, '').toLowerCase();
     if (!username) return res.status(400).json({ error: 'Missing username' });
@@ -65,6 +75,7 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'public, max-age='+(CACHE_TTL_MS/1000|0));
     return res.status(200).json(mapped);
   } catch (e) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(500).json({ error: 'Server error' });
   }
 }
