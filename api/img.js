@@ -1,4 +1,5 @@
 
+
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB safety limit
 
@@ -45,19 +46,30 @@ export default async function handler(req, res) {
     }
 
     const arrayBuffer = await upstream.arrayBuffer();
-    const buf = Buffer.from(arrayBuffer);
+    let buf = Buffer.from(arrayBuffer);
     if (buf.byteLength > MAX_BYTES) {
       return res.status(413).json({ error: 'Image too large' });
     }
 
-    const ctype = upstream.headers.get('content-type') || 'image/jpeg';
-    res.setHeader('Content-Type', ctype);
+    // Optional resizing
+    const w = Number(req.query.w || 0);
+    const h = Number(req.query.h || 0);
+    const fit = String(req.query.fit || 'cover');
+    try {
+      if (w || h) {
+        const sharp = (await import('sharp')).default;
+        buf = await sharp(buf).resize({ width: w || undefined, height: h || undefined, fit }).toFormat('jpeg').toBuffer();
+      }
+    } catch (e) {
+      // Best effort – fallback to original buffer on sharp errors
+    }
+
+    res.setHeader('Content-Type', 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=86400');
     res.status(200).send(buf);
   } catch (e) {
     res.status(500).json({ error: 'Server error' });
   }
 }
-
 
 
