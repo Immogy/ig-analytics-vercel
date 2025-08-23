@@ -5,7 +5,8 @@
       "memory": 1024,
       "maxDuration": 10
     }
-  }
+  },
+  "routes": [
+    { "src": "/api/img", "methods": ["GET", "OPTIONS"], "dest": "/api/img.js" }
+  ]
 }
-
-
