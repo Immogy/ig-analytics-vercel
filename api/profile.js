@@ -1,5 +1,3 @@
-export const config = { runtime: 'nodejs18.x' };
-
 const CACHE_TTL_MS = Number(process.env.CACHE_TTL_MS || 5 * 60 * 1000);
 const cache = new Map(); // { key: { exp, data } }
 
