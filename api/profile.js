@@ -74,9 +74,9 @@ export default async function handler(req, res) {
         caption: String(n.edge_media_to_caption?.edges?.[0]?.node?.text || ''),
         likes: Number((n.edge_liked_by?.count ?? n.edge_media_preview_like?.count) || 0),
         comments: Number((n.edge_media_to_parent_comment?.count ?? n.edge_media_to_comment?.count) || 0),
-        // saves/shares nejsou veřejně dostupné – ponecháme null pro férovost
-        saves: null,
-        shares: null
+        // Pokud váš scrapper tyto hodnoty doplní, předáme je dál; jinak null
+        saves: (n.saves !== undefined && n.saves !== null) ? Number(n.saves) : null,
+        shares: (n.shares !== undefined && n.shares !== null) ? Number(n.shares) : null
       })),
       followers_history: []
     };
