@@ -1,3 +1,5 @@
+
+
 const CACHE_TTL_MS = Number(process.env.CACHE_TTL_MS || 5 * 60 * 1000);
 const cache = new Map(); // { key: { exp, data } }
 
@@ -60,11 +62,21 @@ export default async function handler(req, res) {
       posts: posts.slice(0, 24).map(n => ({
         id: n.id,
         shortcode: n.shortcode,
+        permalink: `https://www.instagram.com/p/${n.shortcode}/`,
         timestamp: n.taken_at_timestamp ? new Date(n.taken_at_timestamp*1000).toISOString() : null,
         type: mapType(n.__typename),
+        is_video: !!n.is_video,
+        video_views: Number(n.video_view_count ?? n.play_count ?? 0) || null,
         thumbnail_url: n.display_url || n.thumbnail_src || '',
+        accessibility_caption: n.accessibility_caption || null,
+        width: Number(n.dimensions?.width ?? 0) || undefined,
+        height: Number(n.dimensions?.height ?? 0) || undefined,
+        caption: String(n.edge_media_to_caption?.edges?.[0]?.node?.text || ''),
         likes: Number((n.edge_liked_by?.count ?? n.edge_media_preview_like?.count) || 0),
-        comments: Number((n.edge_media_to_parent_comment?.count ?? n.edge_media_to_comment?.count) || 0)
+        comments: Number((n.edge_media_to_parent_comment?.count ?? n.edge_media_to_comment?.count) || 0),
+        // saves/shares nejsou veřejně dostupné – ponecháme null pro férovost
+        saves: null,
+        shares: null
       })),
       followers_history: []
     };
