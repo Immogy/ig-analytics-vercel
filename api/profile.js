@@ -64,7 +64,7 @@ export default async function handler(req, res) {
         shortcode: n.shortcode,
         permalink: `https://www.instagram.com/p/${n.shortcode}/`,
         timestamp: n.taken_at_timestamp ? new Date(n.taken_at_timestamp*1000).toISOString() : null,
-        type: mapType(n.__typename),
+        type: mapType(n),
         is_video: !!n.is_video,
         video_views: Number(n.video_view_count ?? n.play_count ?? 0) || null,
         thumbnail_url: n.display_url || n.thumbnail_src || '',
@@ -90,11 +90,13 @@ export default async function handler(req, res) {
   }
 }
 
-function mapType(t){
-  const s = String(t||'');
-  if (s.includes('GraphVideo')) return 'video';
-  if (s.includes('GraphImage')) return 'image';
-  if (s.includes('GraphSidecar')) return 'image';
+function mapType(n){
+  const typename = String(n?.__typename || '');
+  const pt = String(n?.product_type || '').toLowerCase();
+  if (pt.includes('clip') || pt.includes('reel')) return 'reel';
+  if (typename.includes('GraphVideo')) return 'video';
+  if (typename.includes('GraphSidecar')) return 'image';
+  if (typename.includes('GraphImage')) return 'image';
   return 'post';
 }
 
